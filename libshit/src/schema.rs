@@ -2,18 +2,46 @@ use serde::{Deserialize, Serialize};
 use std::io::Read as _;
 use xz2::read::{XzDecoder, XzEncoder};
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Copy, Clone, Debug)]
 pub enum CompressionSchema {
-    Uncompressed,
-    flate3_DynamicBlockLarge,
-    flate3_DynamicBlockSmall,
-    flate3_StaticBlockLarge,
-    flate3_StaticBlockSmall,
-    lzma_xz_3,
-    lzma_xz_6,
+    Uncompressed = 0,
+    flate3_DynamicBlockLarge = 1,
+    flate3_DynamicBlockSmall = 2,
+    flate3_StaticBlockLarge = 3,
+    flate3_StaticBlockSmall = 4,
+    // starting lzma from later in case I figure out how to add more flate3 schemas later
+    lzma_xz_3 = 33,
+    lzma_xz_6 = 34,
 }
 
 impl CompressionSchema {
+    pub fn from_id(id: u8) -> Self {
+        use CompressionSchema::*;
+        match id {
+            0 => Uncompressed,
+            1 => flate3_DynamicBlockLarge,
+            2 => flate3_DynamicBlockSmall,
+            3 => flate3_StaticBlockLarge,
+            4 => flate3_StaticBlockSmall,
+            33 => lzma_xz_3,
+            34 => lzma_xz_6,
+            _ => panic!("ID should be one of [0, 1, 2, 3, 4, 33, 34]"),
+        }
+    }
+
+    pub fn get_all_schemas() -> [Self;7] {
+        use CompressionSchema::*;
+        [
+            Uncompressed,
+            flate3_DynamicBlockLarge,
+            flate3_DynamicBlockSmall,
+            flate3_StaticBlockLarge,
+            flate3_StaticBlockSmall,
+            lzma_xz_3,
+            lzma_xz_6,
+        ]
+    }
+
     pub fn schema_string(&self) -> &str {
         use CompressionSchema::*;
         match self {

@@ -2,6 +2,7 @@ pub mod compress;
 mod fs;
 pub mod schema;
 pub use compress::CompressedArchive;
+pub use schema::CompressionSchema;
 use serde::{Deserialize, Serialize};
 
 use fs::*;
@@ -9,23 +10,24 @@ use std::fs::{create_dir_all, write, File};
 use std::io::{BufReader, Read as _};
 use std::path::PathBuf;
 
+#[derive(Clone)]
 pub struct SerializedArchive(pub Vec<u8>, bool);
 
-#[derive(Serialize, Deserialize, Debug, Default)]
+#[derive(Serialize, Deserialize, Debug, Default, Clone)]
 pub struct Archive(pub Vec<ArchiveEntry>, bool);
 
-#[derive(Serialize, Deserialize, Debug, Default)]
+#[derive(Serialize, Deserialize, Debug, Default, Clone)]
 pub struct ArchiveEntry {
     name: String,
     content: Vec<u8>,
 }
 
 impl SerializedArchive {
-    pub fn compress(self) -> CompressedArchive {
+    pub fn compress(self, schema: CompressionSchema) -> CompressedArchive {
         if self.1 {
             println!("Converting serialized archive to compressed archive.")
         }
-        CompressedArchive::new(self)
+        CompressedArchive::new(self, schema)
     }
 
     pub fn deserialize(self) -> Archive {
