@@ -11,12 +11,12 @@ The implementation of `archive-shit` is pretty much the simplest implementation 
 1. Flatten all paths and folders passed to get a list of files to archive
 2. Create a list of serializable objects, one for each file, containing the path to the file relative to the directory the tool is run in and its contents as a `Vec<u8>`
 3. Serialize the list of objects using `serde` and `bincode`, to produce a `Vec<u8>` representation of the archive
-4. Compress the resulting `Vec<u8>` using various compression techniques (currently, the compression scheme uses `flate3`, but the compression ratios I've been seeing are suboptimal, so this may change in the future)
+4. Compress the resulting `Vec<u8>` using various compression techniques (currently, `flate3` and `lzma/xz` with various settings) to find the one with the best ratio.
 5. Write the resulting compressed `Vec<u8>` to the passed file location, usually a `.shit` file (but not required to be). 
 
 # Todo/Roadmap
-- [ ] Implement a post-compression header struct appended to the front to store information like compression schema, in case the algorithm ever changes from `flate3` in the future, to enable opening all `.shit` archives even if originally archived using older version of the tool
-    - [ ] switch to `VecDeque<T>` representation?
+- [x] Implement a post-compression header struct appended to the front to store information like compression schema, in case the algorithm ever changes from `flate3` in the future, to enable opening all `.shit` archives even if originally archived using older version of the tool
+    - [-] switch to `VecDeque<T>` representation? will not be implemented
 - [ ] Implement a custom compression algorithm ?
 - [ ] Remove Herobrine
 - [ ] update `libshit` to use less `.except(err)` and return more `Result<T, E>` structs, and do more of the error handling in the `makeshit` and `breakshit` CLI tools, to make `libshit` more accessible for embedding in other tools in the future
