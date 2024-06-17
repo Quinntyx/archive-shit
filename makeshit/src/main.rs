@@ -2,7 +2,7 @@ use std::path::PathBuf;
 
 fn main() {
     let args: Vec<String> = std::env::args().collect();
-    let archive_files: Vec<PathBuf> = args[1..args.len()]
+    let archive_files: Vec<PathBuf> = args[1..args.len() - 1]
         .iter()
         .map(|i| i.into())
         .collect();
