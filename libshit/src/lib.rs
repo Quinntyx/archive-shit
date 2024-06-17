@@ -43,7 +43,7 @@ impl Archive {
         let mut archive = Archive(vec!(), debug);
         for (n, file) in files.iter().enumerate() {
             let entry = ArchiveEntry::new(file.clone().into(), archive.1);
-            if archive.1 { println!("Archiving {} [{}/{}]", entry.name.clone(), n, filecount) }
+            if archive.1 { println!("Archiving {} [{}/{}]", entry.name.clone(), n + 1, filecount) }
             archive.0.push(entry);
         }
         archive
@@ -52,7 +52,7 @@ impl Archive {
     pub fn write_entries_to_disk(&self) {
         let entrycount = self.0.len();
         for (n, entry) in self.0.iter().enumerate() {
-            if self.1 { println!("Writing {} [{}/{}]", entry.name, n, entrycount) }
+            if self.1 { println!("Writing {} [{}/{}]", entry.name, n + 1, entrycount) }
             let path: PathBuf = entry.name.clone().into();
             create_dir_all(path.parent().expect("Path is not root or prefix")).expect("Directories should be creatable");
             write(path, entry.content.clone()).expect("File should be writable");

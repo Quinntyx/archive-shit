@@ -10,7 +10,16 @@ pub struct CompressedArchive(pub Vec<u8>, bool);
 impl CompressedArchive {
     pub fn new(archive: SerializedArchive) -> Self {
         if archive.1 { println!("Compressing archive.") }
-        let mut comp = flate3::Compressor::new();
+        let mut comp = flate3::Compressor {
+            options: flate3::Options {
+                dynamic_block_size: true, 
+                block_size: 0x2000, 
+                matching: true,
+                probe_max: 100, 
+                lazy_match: true,
+                match_channel_size: 1000,
+            }
+        };
         let new_archive = Self(comp.deflate(&archive.0), archive.1);
         let ratio = new_archive.0.len() as f64 / archive.0.len() as f64 * 100f64;
         if archive.1 { 
