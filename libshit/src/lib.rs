@@ -6,8 +6,8 @@ pub use schema::CompressionSchema;
 use serde::{Deserialize, Serialize};
 
 use fs::*;
-use std::fs::{create_dir_all, write, File};
-use std::io::{BufReader, Read as _};
+use std::fs::{create_dir_all, File, FileTimes};
+use std::io::{BufReader, Read as _, Write as _};
 use std::path::PathBuf;
 
 #[derive(Clone)]
@@ -16,10 +16,11 @@ pub struct SerializedArchive(pub Vec<u8>, bool);
 #[derive(Serialize, Deserialize, Debug, Default, Clone)]
 pub struct Archive(pub Vec<ArchiveEntry>, bool);
 
-#[derive(Serialize, Deserialize, Debug, Default, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct ArchiveEntry {
     name: String,
     content: Vec<u8>,
+    meta: FileMetadata,
 }
 
 impl SerializedArchive {
@@ -75,7 +76,25 @@ impl Archive {
             let path: PathBuf = entry.name.clone().into();
             create_dir_all(path.parent().expect("Path is not root or prefix"))
                 .expect("Directories should be creatable");
-            write(path, entry.content.clone()).expect("File should be writable");
+
+            let mut file = File::create(path).expect("File should be creatable");
+            file.write(&entry.content).expect("File should be writable");
+
+            let mut times = FileTimes::new();
+            entry.meta.accessed.map(|i| times.set_accessed(i));
+            entry.meta.modified.map(|i| times.set_modified(i));
+
+            #[cfg(windows)] {
+                use std::os::windows::fs::FileTimesExt;
+                entry.meta.created.map(|i| times.set_created(i));
+            }
+
+            let mut perms = file.metadata().expect("Should be able to access file metadata").permissions();
+
+            entry.meta.permissions.update_std(&mut perms);
+
+            file.set_times(times).expect("Should be able to set times");
+            file.set_permissions(perms).expect("Should be able to set permissions");
         }
     }
 }
@@ -87,13 +106,17 @@ impl ArchiveEntry {
             println!("Reading {}", filename.clone())
         }
 
-        let f = BufReader::new(File::open(&file).expect("File should exist"));
+        let file = File::open(&file).expect("File should exist");
+        let meta = FileMetadata::new(file.metadata().expect("File should provide metadata"));
+
+        let f = BufReader::new(file);
         ArchiveEntry {
             name: filename,
             content: f
                 .bytes()
                 .map(|i| i.expect("Bytes should be valid"))
                 .collect(),
+            meta,
         }
     }
 }

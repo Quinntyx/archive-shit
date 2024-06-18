@@ -1,17 +1,12 @@
-use std::path::PathBuf;
 use libshit::*;
+use std::path::PathBuf;
 
 fn main() {
     let args: Vec<String> = std::env::args().collect();
-    let archive_files: Vec<PathBuf> = args[1..args.len() - 1]
-        .iter()
-        .map(|i| i.into())
-        .collect();
-    let archive_name = args.last()
-        .expect("Archive name should be specified");
+    let archive_files: Vec<PathBuf> = args[1..args.len() - 1].iter().map(|i| i.into()).collect();
+    let archive_name = args.last().expect("Archive name should be specified");
 
-    let base_archive = Archive::new(&archive_files, true)
-        .serialize();
+    let base_archive = Archive::new(&archive_files, true).serialize();
 
     let mut best_archive: (usize, Option<CompressedArchive>) = (0, None);
 
@@ -24,5 +19,9 @@ fn main() {
         }
     }
 
-    best_archive.1.unwrap().write(archive_name.into()).expect("Archive should be writable");
+    best_archive
+        .1
+        .unwrap()
+        .write(archive_name.into())
+        .expect("Archive should be writable");
 }

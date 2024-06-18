@@ -29,7 +29,7 @@ impl CompressionSchema {
         }
     }
 
-    pub fn get_all_schemas() -> [Self;7] {
+    pub fn get_all_schemas() -> [Self; 7] {
         use CompressionSchema::*;
         [
             Uncompressed,
